@@ -35,15 +35,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val alarmScreenState by alarmScreenViewModel.state.observeAsState(
-                AlarmScreenState(status = AlarmScreenState.Status.NEW)
+                AlarmScreenState(screenStatus = AlarmScreenState.Status.CREATING)
             )
-            val alarmScreenEvent by alarmScreenViewModel.events.collectAsState(initial = AlarmScreenEvent.SolicitLocationPermissions)
+
+            // NOTICE: This screen is only recomposed when the event changes. For example,
+            // if the location does not change, then the
+            val alarmScreenEvent by alarmScreenViewModel.events.collectAsState(initial = null)
 
             NoonlightDemoTheme {
 
                 // TODO: Future consideration: Add in NavController.
 
                 when (alarmScreenEvent) {
+                    null -> Timber.i("Null event not handled.")
                     AlarmScreenEvent.SolicitLocationPermissions -> {
                         LocationPermissionsAlertDialog(
                             onPositiveClick = {
@@ -51,9 +55,6 @@ class MainActivity : ComponentActivity() {
                             },
                             onNegativeClick = {
                                 alarmScreenViewModel.onPermissionsSolicitationDenied()
-                            },
-                            onDismiss = {
-
                             },
                             message = stringResource(id = R.string.allow_location_permissions_desc),
                         )
@@ -74,9 +75,6 @@ class MainActivity : ComponentActivity() {
                             onNegativeClick = {
                                 alarmScreenViewModel.onPermissionsSolicitationDenied()
                             },
-                            onDismiss = {
-
-                            },
                             message = stringResource(id = R.string.allow_fine_location_permissions_explanation),
                         )
                     }
@@ -88,7 +86,19 @@ class MainActivity : ComponentActivity() {
                         )
                             .show()
                     }
-                    null -> Timber.i("Null event not handled.")
+                    is AlarmScreenEvent.ErrorCancellingAlarm -> {
+                        Toast.makeText(this, R.string.error_cancelling_alarm, Toast.LENGTH_SHORT).show()
+                    }
+                    is AlarmScreenEvent.ErrorUpdatingLocation -> {
+                        // TODO: This will be called while the alarm is being cancelled.
+                        //  Could be handled more gracefully.
+                        Toast.makeText(this, R.string.error_updating_location, Toast.LENGTH_SHORT).show()
+                    }
+                    is AlarmScreenEvent.LocationUpdated -> {
+                        val wrapper = (alarmScreenEvent as AlarmScreenEvent.LocationUpdated).locationWrapper
+                        val description = getString(R.string.location_updated, wrapper.latitude, wrapper.longitude, wrapper.accuracy)
+                        Toast.makeText(this, description, Toast.LENGTH_SHORT).show()
+                    }
                 }
 
                 AlarmScreen(
