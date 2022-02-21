@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
             val alarmScreenState by alarmScreenViewModel.state.observeAsState(
                 AlarmScreenState(status = AlarmScreenState.Status.NEW)
             )
-            val alarmScreenEvent by alarmScreenViewModel.events.collectAsState(initial = null)
+            val alarmScreenEvent by alarmScreenViewModel.events.collectAsState(initial = AlarmScreenEvent.SolicitLocationPermissions)
 
             NoonlightDemoTheme {
 

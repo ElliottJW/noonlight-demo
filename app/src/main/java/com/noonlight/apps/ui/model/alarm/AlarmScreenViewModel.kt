@@ -10,6 +10,7 @@ import com.noonlight.apps.ui.state.alarm.AlarmScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,6 +51,13 @@ class AlarmScreenViewModel @Inject constructor(
             permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
                 // If we're here, we know that both permissions have been granted, since
                 // course must be granted before fine can be.
+                viewModelScope.launch {
+                    locationRepository.getLocationUpdates()
+                        .collect {
+                            Timber.i("New location wrapper: $it")
+                            // TODO: Next up, send locations to Noonlight.
+                        }
+                }
             }
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
                 // Course permissions were granted, but not fine. We'd prefer to have fine.

@@ -1,6 +1,9 @@
 package com.noonlight.apps.domain.location
 
-interface LocationRepository {
+import kotlinx.coroutines.flow.Flow
 
+
+interface LocationRepository {
     fun getCurrentLocationPermissionsStatus(): Map<String, Boolean>
+    fun getLocationUpdates(): Flow<LocationWrapper>
 }
