@@ -26,9 +26,9 @@ class MainActivity : ComponentActivity() {
     private val alarmScreenViewModel: AlarmScreenViewModel by viewModels()
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
+    ) {
         Timber.i("Got location permission status.")
-        alarmScreenViewModel.onLocationPermissionsUpdated(permissions)
+        alarmScreenViewModel.onLocationPermissionsUpdated()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

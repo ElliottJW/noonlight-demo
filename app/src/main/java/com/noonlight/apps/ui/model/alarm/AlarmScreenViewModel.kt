@@ -34,8 +34,8 @@ class AlarmScreenViewModel @Inject constructor(
     private var createAlarmRequestPending: AtomicBoolean = AtomicBoolean(false)
 
     init {
-        val permissions = locationRepository.getCurrentLocationPermissionsStatus()
-        onLocationPermissionsUpdated(permissions = permissions)
+        // Check for locations when the ViewModel starts.
+        onLocationPermissionsUpdated()
     }
 
     /**
@@ -43,20 +43,24 @@ class AlarmScreenViewModel @Inject constructor(
      * we're asking for their location.
      */
     fun onCreateAlarmClicked() {
-        val permissions = locationRepository.getCurrentLocationPermissionsStatus()
-        onLocationPermissionsUpdated(permissions = permissions)
-
-        locationRepository.getLastLocation(onSuccess = { wrapper ->
-            if (!wrapper.isValid()) {
-                Timber.e("Wrapper is invalid!")
+        val permissionsGranted = locationRepository.areCurrentLocationPermissionsGranted()
+        if (permissionsGranted) {
+            locationRepository.getLastLocation(onSuccess = { wrapper ->
+                if (!wrapper.isValid()) {
+                    Timber.e("Wrapper is invalid!")
+                    updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.CREATING) }
+                } else {
+                    createNewAlarm(wrapper = wrapper)
+                }
+            }, onError = {
+                Timber.e("Permissions have not been granted yet.")
                 updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.CREATING) }
-            } else {
-                createNewAlarm(wrapper = wrapper)
+            })
+        } else {
+            viewModelScope.launch {
+                _events.emit(AlarmScreenEvent.SolicitLocationPermissions)
             }
-        }, onError = {
-            Timber.e("Permissions have not been granted yet.")
-            updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.CREATING) }
-        })
+        }
     }
 
     private fun createNewAlarm(wrapper: LocationWrapper) {
@@ -114,7 +118,7 @@ class AlarmScreenViewModel @Inject constructor(
      * For the purposes of this demo, we want both fine and course permissions so
      * we can ensure the participant's safety.
      */
-    fun onLocationPermissionsUpdated(permissions: Map<String, Boolean>) {
+    fun onLocationPermissionsUpdated() {
         locationRepository.checkLocationPermissions(onGranted = {
             if (createAlarmRequestPending.getAndSet(false)) {
                 onCreateAlarmClicked()
@@ -146,7 +150,7 @@ class AlarmScreenViewModel @Inject constructor(
                     }
                 )
             }
-        }, permissions = permissions)
+        })
     }
 
     private suspend fun updateAlarmLocation(alarmId: String, locationWrapper: LocationWrapper) {

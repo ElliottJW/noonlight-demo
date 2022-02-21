@@ -24,15 +24,15 @@ class LocationRepositoryImpl @Inject constructor(
 
     private fun Location.toLocationWrapper(): LocationWrapper {
         return LocationWrapper(
-            permissions = getCurrentLocationPermissionsStatus(),
+            permissions = getLocationPermissionsStatus(),
             accuracy = this.accuracy.toInt(), // Documentation said number; API said integer.
             longitude =  this.longitude,
             latitude = this.latitude
         )
     }
 
-    private fun permissionsGranted(): Boolean {
-        val permissions = getCurrentLocationPermissionsStatus()
+    override fun areCurrentLocationPermissionsGranted(): Boolean {
+        val permissions = getLocationPermissionsStatus()
         return permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
                 && permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
     }
@@ -40,7 +40,7 @@ class LocationRepositoryImpl @Inject constructor(
     // Still need the lint check because we're using the checkSelfPermission API by proxy.
     @SuppressLint("MissingPermission")
     override fun getLastLocation(onSuccess: (LocationWrapper) -> Unit, onError: () -> Unit) {
-        if (!permissionsGranted()) {
+        if (!areCurrentLocationPermissionsGranted()) {
             onError()
         } else {
             fusedLocationProviderClient.lastLocation.addOnCompleteListener { task ->
@@ -58,11 +58,11 @@ class LocationRepositoryImpl @Inject constructor(
     @SuppressLint("MissingPermission")
     override fun getLocationUpdates(): Flow<LocationWrapper> {
         return callbackFlow {
-            if (!permissionsGranted()) {
+            if (!areCurrentLocationPermissionsGranted()) {
                 Timber.w("Permissions have not been granted before accessing location updates.")
                 trySend(
                     LocationWrapper(
-                        permissions = getCurrentLocationPermissionsStatus(),
+                        permissions = getLocationPermissionsStatus(),
                         latitude = null,
                         longitude = null,
                         accuracy = null
@@ -102,7 +102,7 @@ class LocationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getCurrentLocationPermissionsStatus(): Map<String, Boolean> {
+    override fun getLocationPermissionsStatus(): Map<String, Boolean> {
         val courseGrainPermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION
@@ -123,9 +123,9 @@ class LocationRepositoryImpl @Inject constructor(
 
     override fun checkLocationPermissions(
         onShowRationale: (coarseGranted: Boolean) -> Unit,
-        onGranted: () -> Unit,
-        permissions: Map<String, Boolean>,
+        onGranted: () -> Unit
     ) {
+        val permissions = getLocationPermissionsStatus()
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
             // If we're here, we know that both permissions have been granted, since
             // course must be granted before fine can be.

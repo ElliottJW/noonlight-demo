@@ -108,7 +108,7 @@ class LocationRepositoryImplTest {
 
     @Test
     fun currentLocationPermissionsStatus_returnsTrueForBoth_whenLocationsGranted() {
-        val actual = underTest.getCurrentLocationPermissionsStatus()
+        val actual = underTest.getLocationPermissionsStatus()
         val expected = mapOf(
             Manifest.permission.ACCESS_COARSE_LOCATION to true,
             Manifest.permission.ACCESS_FINE_LOCATION to true
