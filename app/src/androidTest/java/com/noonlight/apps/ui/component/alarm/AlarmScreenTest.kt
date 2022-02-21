@@ -1,13 +1,9 @@
 package com.noonlight.apps.ui.component.alarm
 
 import android.content.Context
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import com.noonlight.apps.R
 import com.noonlight.apps.ui.state.alarm.AlarmScreenState
@@ -31,7 +27,7 @@ class AlarmScreenTest {
     @Test
     fun showCreateAlarm_when_stateIsNew() {
         val state = AlarmScreenState(
-            status = AlarmScreenState.Status.NEW
+            screenStatus = AlarmScreenState.Status.CREATING
         )
         rule.setContent {
             NoonlightDemoTheme {
@@ -50,7 +46,7 @@ class AlarmScreenTest {
     @Test
     fun showLoadingIndicator_when_stateIsLoading() {
         val state = AlarmScreenState(
-            status = AlarmScreenState.Status.LOADING
+            screenStatus = AlarmScreenState.Status.ARMING
         )
         rule.setContent {
             NoonlightDemoTheme {
@@ -63,13 +59,32 @@ class AlarmScreenTest {
 
         rule.onNodeWithText(text = context.getString(R.string.create_alarm)).assertDoesNotExist()
         rule.onNodeWithText(text = context.getString(R.string.cancel_alarm)).assertDoesNotExist()
-        rule.onNodeWithTag(testTag = AlarmLoadingIndicatorConstants.PROGRESS_TAG).assertExists()
+        rule.onNodeWithText(text = context.getString(R.string.preparing_alarm)).assertExists()
+    }
+
+    @Test
+    fun showLoadingIndicator_when_stateIsDisarming() {
+        val state = AlarmScreenState(
+            screenStatus = AlarmScreenState.Status.DISARMING
+        )
+        rule.setContent {
+            NoonlightDemoTheme {
+                AlarmScreen(
+                    state = state,
+                    onCreateAlarmClicked = { /* non-op */ },
+                    onCancelAlarmClicked = { /* non-op */ })
+            }
+        }
+
+        rule.onNodeWithText(text = context.getString(R.string.create_alarm)).assertDoesNotExist()
+        rule.onNodeWithText(text = context.getString(R.string.cancel_alarm)).assertDoesNotExist()
+        rule.onNodeWithText(text = context.getString(R.string.disarming_alarm)).assertExists()
     }
 
     @Test
     fun showCancelAlarm_when_stateIsArmed() {
         val state = AlarmScreenState(
-            status = AlarmScreenState.Status.ARMED
+            screenStatus = AlarmScreenState.Status.ARMED
         )
         rule.setContent {
             NoonlightDemoTheme {

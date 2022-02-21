@@ -21,7 +21,9 @@ object AlarmLoadingIndicatorConstants {
 }
 
 @Composable
-fun AlarmLoadingIndicator() {
+fun AlarmLoadingIndicator(
+    text: String
+) {
     Surface {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -30,7 +32,7 @@ fun AlarmLoadingIndicator() {
         ) {
             CircularProgressIndicator(modifier = Modifier.testTag(AlarmLoadingIndicatorConstants.PROGRESS_TAG))
             Spacer(modifier = Modifier.width(width = 12.dp))
-            Text(text = stringResource(id = R.string.preparing_alarm))
+            Text(text = text)
         }
     }
 }
@@ -39,6 +41,14 @@ fun AlarmLoadingIndicator() {
 @Composable
 fun PreviewAlarmLoadingIndicator() {
     NoonlightDemoTheme {
-        AlarmLoadingIndicator()
+        AlarmLoadingIndicator(stringResource(id = R.string.preparing_alarm))
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAlarmDisarmingIndicator() {
+    NoonlightDemoTheme {
+        AlarmLoadingIndicator(stringResource(id = R.string.disarming_alarm))
     }
 }

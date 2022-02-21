@@ -26,8 +26,8 @@ fun AlarmScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when (state.status) {
-                AlarmScreenState.Status.NEW -> {
+            when (state.screenStatus) {
+                AlarmScreenState.Status.CREATING -> {
                     // Create Alarm button
                     AlarmButton(
                         text = stringResource(id = R.string.create_alarm),
@@ -35,9 +35,11 @@ fun AlarmScreen(
                         onClick = onCreateAlarmClicked
                     )
                 }
-                AlarmScreenState.Status.LOADING -> {
+                AlarmScreenState.Status.ARMING -> {
                     // Loading indicator
-                    AlarmLoadingIndicator()
+                    AlarmLoadingIndicator(
+                        text = stringResource(id = R.string.preparing_alarm)
+                    )
                 }
                 AlarmScreenState.Status.ARMED -> {
                     // Cancel Alarm button
@@ -45,6 +47,12 @@ fun AlarmScreen(
                         text = stringResource(id = R.string.cancel_alarm),
                         color = MaterialTheme.colors.error,
                         onClick = onCancelAlarmClicked
+                    )
+                }
+                AlarmScreenState.Status.DISARMING -> {
+                    // Disarming indicator
+                    AlarmLoadingIndicator(
+                        text = stringResource(id = R.string.disarming_alarm)
                     )
                 }
             }
@@ -57,7 +65,7 @@ fun AlarmScreen(
 fun PreviewAlarmScreenNew() {
     NoonlightDemoTheme {
         AlarmScreen(
-            state = AlarmScreenState(status = AlarmScreenState.Status.NEW),
+            state = AlarmScreenState(screenStatus = AlarmScreenState.Status.CREATING),
             onCreateAlarmClicked = { /*TODO*/ },
             onCancelAlarmClicked = {})
     }
@@ -68,7 +76,7 @@ fun PreviewAlarmScreenNew() {
 fun PreviewAlarmScreenLoading() {
     NoonlightDemoTheme {
         AlarmScreen(
-            state = AlarmScreenState(status = AlarmScreenState.Status.LOADING),
+            state = AlarmScreenState(screenStatus = AlarmScreenState.Status.ARMING),
             onCreateAlarmClicked = { /*TODO*/ },
             onCancelAlarmClicked = {})
     }
@@ -79,7 +87,18 @@ fun PreviewAlarmScreenLoading() {
 fun PreviewAlarmScreenArmed() {
     NoonlightDemoTheme {
         AlarmScreen(
-            state = AlarmScreenState(status = AlarmScreenState.Status.ARMED),
+            state = AlarmScreenState(screenStatus = AlarmScreenState.Status.ARMED),
+            onCreateAlarmClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {})
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAlarmScreenDisarming() {
+    NoonlightDemoTheme {
+        AlarmScreen(
+            state = AlarmScreenState(screenStatus = AlarmScreenState.Status.DISARMING),
             onCreateAlarmClicked = { /*TODO*/ },
             onCancelAlarmClicked = {})
     }

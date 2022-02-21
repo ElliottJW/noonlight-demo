@@ -1,8 +1,11 @@
 package com.noonlight.apps.ui.state.alarm
 
-data class AlarmScreenState(val status: Status) {
+data class AlarmScreenState(
+    val screenStatus: Status,
+    val currentAlarmId: String? = null,
+) {
 
     enum class Status {
-        NEW, LOADING, ARMED
+        CREATING, ARMING, ARMED, DISARMING
     }
 }
