@@ -32,7 +32,7 @@ class AlarmScreenViewModel @Inject constructor(
      */
     fun onCreateAlarmClicked() {
         val permissions = locationRepository.getCurrentLocationPermissionsStatus()
-        checkLocationPermissions(permissions = permissions)
+        onLocationPermissionsUpdated(permissions = permissions)
     }
 
     /**
@@ -43,41 +43,27 @@ class AlarmScreenViewModel @Inject constructor(
      * we can ensure the participant's safety.
      */
     fun onLocationPermissionsUpdated(permissions: Map<String, Boolean>) {
-        checkLocationPermissions(permissions = permissions)
-    }
-
-    private fun checkLocationPermissions(permissions: Map<String, Boolean>) {
-        when {
-            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
-                // If we're here, we know that both permissions have been granted, since
-                // course must be granted before fine can be.
-                viewModelScope.launch {
-                    locationRepository.getLocationUpdates()
-                        .collect {
-                            Timber.i("New location wrapper: $it")
-                            // TODO: Next up, send locations to Noonlight.
-                        }
-                }
-            }
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
-                // Course permissions were granted, but not fine. We'd prefer to have fine.
-                onShowLocationPermissionRationale(false)
-            }
-            else -> {
-                // Neither course nor fine-grained permissions were granted.
-                onShowLocationPermissionRationale()
-            }
-        }
-    }
-
-    private fun onShowLocationPermissionRationale(isFineGranted: Boolean = false) {
         viewModelScope.launch {
-            _events.emit(if (!isFineGranted) {
-                AlarmScreenEvent.SuggestFineLocationPermissions
-            } else {
-                AlarmScreenEvent.SolicitLocationPermissions
-            })
+            locationRepository.checkLocationPermissions(onGranted = {
+                // Start listening to location updates.
+                viewModelScope.launch {
+                    locationRepository.getLocationUpdates().collect { locationWrapper ->
+
+                    }
+                }
+            }, onShowRationale = { coarseGranted ->
+                viewModelScope.launch {
+                    _events.emit(
+                        if (coarseGranted) {
+                            AlarmScreenEvent.SuggestFineLocationPermissions
+                        } else {
+                            AlarmScreenEvent.SolicitLocationPermissions
+                        }
+                    )
+                }
+            }, permissions = permissions)
         }
+
     }
 
     fun onCancelAlarmClicked() {
@@ -102,7 +88,7 @@ class AlarmScreenViewModel @Inject constructor(
 
 sealed class AlarmScreenEvent {
     object SolicitLocationPermissions : AlarmScreenEvent()
-    object SuggestFineLocationPermissions: AlarmScreenEvent()
+    object SuggestFineLocationPermissions : AlarmScreenEvent()
     object StartLocationPermissionsRequest : AlarmScreenEvent()
     object LocationPermissionsDenied : AlarmScreenEvent()
 }
