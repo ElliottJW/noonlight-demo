@@ -1,0 +1,6 @@
+{
+  "code": 400,
+  "message": "Bad Request",
+  "key": "alarm_canceled",
+  "details": "The alarm has already been canceled and can no longer be modified"
+}
