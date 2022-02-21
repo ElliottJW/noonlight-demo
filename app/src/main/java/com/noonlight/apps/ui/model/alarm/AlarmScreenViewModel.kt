@@ -1,5 +1,6 @@
 package com.noonlight.apps.ui.model.alarm
 
+import androidx.annotation.RestrictTo
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -31,7 +32,8 @@ class AlarmScreenViewModel @Inject constructor(
     private val _events = MutableSharedFlow<AlarmScreenEvent>(replay = 1)
     val events: SharedFlow<AlarmScreenEvent> = _events
 
-    private var createAlarmRequestPending: AtomicBoolean = AtomicBoolean(false)
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    var createAlarmRequestPending: AtomicBoolean = AtomicBoolean(false)
 
     init {
         // Check for locations when the ViewModel starts.

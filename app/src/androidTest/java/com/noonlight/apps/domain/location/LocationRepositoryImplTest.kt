@@ -10,6 +10,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import io.mockk.mockk
 import junit.framework.Assert.assertEquals
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -107,12 +108,7 @@ class LocationRepositoryImplTest {
     }
 
     @Test
-    fun currentLocationPermissionsStatus_returnsTrueForBoth_whenLocationsGranted() {
-        val actual = underTest.getLocationPermissionsStatus()
-        val expected = mapOf(
-            Manifest.permission.ACCESS_COARSE_LOCATION to true,
-            Manifest.permission.ACCESS_FINE_LOCATION to true
-        )
-        assertEquals(expected, actual)
+    fun currentLocationPermissionsStatus_returnsTrue_whenLocationsGranted() {
+        assertTrue(underTest.areCurrentLocationPermissionsGranted())
     }
 }

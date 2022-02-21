@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.Flow
 
 
 interface LocationRepository {
-    fun getLocationPermissionsStatus(): Map<String, Boolean>
     fun areCurrentLocationPermissionsGranted(): Boolean
     fun getLocationUpdates(): Flow<LocationWrapper>
     fun getLastLocation(onSuccess: (LocationWrapper) -> Unit, onError: () -> Unit)

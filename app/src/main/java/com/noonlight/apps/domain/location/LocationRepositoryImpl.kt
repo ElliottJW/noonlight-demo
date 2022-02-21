@@ -102,7 +102,7 @@ class LocationRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLocationPermissionsStatus(): Map<String, Boolean> {
+    private fun getLocationPermissionsStatus(): Map<String, Boolean> {
         val courseGrainPermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_COARSE_LOCATION
