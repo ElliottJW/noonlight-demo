@@ -3,4 +3,9 @@
     <string name="create_alarm">Create Alarm</string>
     <string name="cancel_alarm">Cancel Alarm</string>
     <string name="preparing_alarm">Preparing alarm…</string>
+    <string name="allow_location_permissions">Allow Location Permissions</string>
+    <string name="allow_location_permissions_desc">Noonlight requires location permissions to ensure responders can find you in the event of an emergency.</string>
+    <string name="allow_fine_location_permissions_explanation">Noonlight suggests updating to use fine location permissions. Fine location is more accurate, and allows responders can find you in the event of an emergency.</string>
+    <string name="deny">Deny</string>
+    <string name="please_allow_permissions_to_proceed">Please allow location permissions to proceed</string>
 </resources>

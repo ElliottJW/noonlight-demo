@@ -1,15 +1,18 @@
 package com.noonlight.apps.ui.component.alarm
 
-import androidx.annotation.RestrictTo
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.noonlight.apps.R
 import com.noonlight.apps.ui.state.alarm.AlarmScreenState
+import com.noonlight.apps.ui.theme.NoonlightDemoTheme
 
 @Composable
 fun AlarmScreen(
@@ -18,13 +21,17 @@ fun AlarmScreen(
     onCancelAlarmClicked: () -> Unit
 ) {
     Surface {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             when (state.status) {
                 AlarmScreenState.Status.NEW -> {
                     // Create Alarm button
                     AlarmButton(
                         text = stringResource(id = R.string.create_alarm),
-                        color = MaterialTheme.colors.error,
+                        color = MaterialTheme.colors.primary,
                         onClick = onCreateAlarmClicked
                     )
                 }
@@ -42,5 +49,38 @@ fun AlarmScreen(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAlarmScreenNew() {
+    NoonlightDemoTheme {
+        AlarmScreen(
+            state = AlarmScreenState(status = AlarmScreenState.Status.NEW),
+            onCreateAlarmClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {})
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAlarmScreenLoading() {
+    NoonlightDemoTheme {
+        AlarmScreen(
+            state = AlarmScreenState(status = AlarmScreenState.Status.LOADING),
+            onCreateAlarmClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {})
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAlarmScreenArmed() {
+    NoonlightDemoTheme {
+        AlarmScreen(
+            state = AlarmScreenState(status = AlarmScreenState.Status.ARMED),
+            onCreateAlarmClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {})
     }
 }
