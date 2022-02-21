@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.lang.Exception
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,8 +28,10 @@ class AlarmScreenViewModel @Inject constructor(
     private val _state = MutableLiveData<AlarmScreenState>()
     val state: LiveData<AlarmScreenState> = _state
 
-    private val _events = MutableSharedFlow<AlarmScreenEvent>()
+    private val _events = MutableSharedFlow<AlarmScreenEvent>(replay = 1)
     val events: SharedFlow<AlarmScreenEvent> = _events
+
+    private var createAlarmRequestPending: AtomicBoolean = AtomicBoolean(false)
 
     init {
         val permissions = locationRepository.getCurrentLocationPermissionsStatus()
@@ -43,7 +46,6 @@ class AlarmScreenViewModel @Inject constructor(
         val permissions = locationRepository.getCurrentLocationPermissionsStatus()
         onLocationPermissionsUpdated(permissions = permissions)
 
-        updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.ARMING) }
         locationRepository.getLastLocation(onSuccess = { wrapper ->
             if (!wrapper.isValid()) {
                 Timber.e("Wrapper is invalid!")
@@ -58,6 +60,7 @@ class AlarmScreenViewModel @Inject constructor(
     }
 
     private fun createNewAlarm(wrapper: LocationWrapper) {
+        updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.ARMING) }
         viewModelScope.launch {
             val request = CreateAlarmRequest(
                 name = userProvider.name,
@@ -113,6 +116,10 @@ class AlarmScreenViewModel @Inject constructor(
      */
     fun onLocationPermissionsUpdated(permissions: Map<String, Boolean>) {
         locationRepository.checkLocationPermissions(onGranted = {
+            if (createAlarmRequestPending.getAndSet(false)) {
+                onCreateAlarmClicked()
+            }
+
             // Start listening to location updates.
             viewModelScope.launch {
                 locationRepository.getLocationUpdates()
@@ -121,10 +128,7 @@ class AlarmScreenViewModel @Inject constructor(
                     }
                     .collect { locationWrapper ->
                         val alarmId = _state.value?.currentAlarmId
-
-                        if (alarmId.isNullOrBlank()) {
-                            Timber.i("There is no alarm to update.")
-                        } else {
+                        if (!alarmId.isNullOrBlank()) {
                             updateAlarmLocation(
                                 alarmId = alarmId,
                                 locationWrapper = locationWrapper
@@ -210,6 +214,8 @@ class AlarmScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _events.emit(AlarmScreenEvent.StartLocationPermissionsRequest)
         }
+
+        createAlarmRequestPending.set(true)
     }
 
     fun onPermissionsSolicitationDenied() {
@@ -217,6 +223,8 @@ class AlarmScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _events.emit(AlarmScreenEvent.LocationPermissionsDenied)
         }
+
+        createAlarmRequestPending.set(false)
     }
 
     private fun updateState(process: (AlarmScreenState) -> AlarmScreenState) {
