@@ -64,7 +64,8 @@ class LocationRepositoryImplTest {
             val expected = LocationWrapper(
                 permissions = permissions,
                 latitude = null,
-                longitude = null
+                longitude = null,
+                accuracy = null
             )
 
             assertEquals(expected, actual)
@@ -98,7 +99,8 @@ class LocationRepositoryImplTest {
             val expected = LocationWrapper(
                 permissions = permissions,
                 latitude = 100.0,
-                longitude = 101.0
+                longitude = 101.0,
+                accuracy = 5
             )
             assertEquals(expected, actual)
         }

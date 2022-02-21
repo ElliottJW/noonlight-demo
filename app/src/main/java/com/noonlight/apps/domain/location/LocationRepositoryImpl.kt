@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
@@ -21,20 +22,50 @@ class LocationRepositoryImpl @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient
 ) : LocationRepository {
 
+    private fun Location.toLocationWrapper(): LocationWrapper {
+        return LocationWrapper(
+            permissions = getCurrentLocationPermissionsStatus(),
+            accuracy = this.accuracy.toInt(), // Documentation said number; API said integer.
+            longitude =  this.longitude,
+            latitude = this.latitude
+        )
+    }
+
+    private fun permissionsGranted(): Boolean {
+        val permissions = getCurrentLocationPermissionsStatus()
+        return permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+                && permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+    }
+
+    // Still need the lint check because we're using the checkSelfPermission API by proxy.
+    @SuppressLint("MissingPermission")
+    override fun getLastLocation(onSuccess: (LocationWrapper) -> Unit, onError: () -> Unit) {
+        if (!permissionsGranted()) {
+            onError()
+        } else {
+            fusedLocationProviderClient.lastLocation.addOnCompleteListener { task ->
+                if (task.isSuccessful && task.result != null) {
+                    onSuccess(task.result.toLocationWrapper())
+                } else {
+                    Timber.e(task.exception, "There was an error getting the last location")
+                    onError()
+                }
+            }
+        }
+    }
+
     // Still need the lint check because we're using the checkSelfPermission API by proxy.
     @SuppressLint("MissingPermission")
     override fun getLocationUpdates(): Flow<LocationWrapper> {
         return callbackFlow {
-            val permissions = getCurrentLocationPermissionsStatus()
-            if (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == false
-                || permissions[Manifest.permission.ACCESS_FINE_LOCATION] == false
-            ) {
+            if (!permissionsGranted()) {
                 Timber.w("Permissions have not been granted before accessing location updates.")
                 trySend(
                     LocationWrapper(
                         permissions = getCurrentLocationPermissionsStatus(),
                         latitude = null,
-                        longitude = null
+                        longitude = null,
+                        accuracy = null
                     )
                 )
 
@@ -42,17 +73,10 @@ class LocationRepositoryImpl @Inject constructor(
             } else {
                 val locationRequest = getLocationRequest()
                 val locationCallback = object : LocationCallback() {
+
                     override fun onLocationResult(result: LocationResult) {
                         Timber.i("New location result")
-                        result.lastLocation.let {
-                            trySend(
-                                LocationWrapper(
-                                    permissions = getCurrentLocationPermissionsStatus(),
-                                    latitude = it.latitude,
-                                    longitude = it.longitude
-                                )
-                            )
-                        }
+                        trySend(result.lastLocation.toLocationWrapper())
                     }
 
                     override fun onLocationAvailability(locationAvailability: LocationAvailability) {
@@ -84,18 +108,12 @@ class LocationRepositoryImpl @Inject constructor(
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
             .let { PackageManager.PERMISSION_GRANTED == it }
-            .also { granted ->
-                Timber.i("Course-grained location ${if (granted) "GRANTED" else "DENIED"}.")
-            }
 
         val fineGrainPermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
             .let { PackageManager.PERMISSION_GRANTED == it }
-            .also { granted ->
-                Timber.i("Fine-grained location ${if (granted) "GRANTED" else "DENIED"}.")
-            }
 
         return mapOf(
             Manifest.permission.ACCESS_COARSE_LOCATION to courseGrainPermission,

@@ -10,7 +10,6 @@ import timber.log.Timber
 fun LocationPermissionsAlertDialog(
     onPositiveClick: () -> Unit,
     onNegativeClick: () -> Unit,
-    onDismiss: () -> Unit,
     message: String,
 ) {
     SimpleAlertDialog(
