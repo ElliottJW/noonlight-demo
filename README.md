@@ -7,12 +7,13 @@ dispatch API.
 
 - Timber logging library; It's extensible and easy-to-use.
 - MockK for mocking in unit / UI tests.
-
-## Questions
-
-- "Launching the application should request “Always” location permissions if not already granted." Is this a hard requirement? Android recommends asking only in context requiring the permission. For example, creating an Alarm.
+- Coroutines and Flow
 
 ## Assumptions
 
 - We need fine-grained location permissions to track the individual and respond effectively.
 - We do not need to create a custom Theme for Compose. Used MaterialTheme.
+
+## Demo
+
+![Demo Gif](screenshots/start_alarm_video.gif)
