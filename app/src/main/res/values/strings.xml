@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">NoonlightDemo</string>
     <string name="create_alarm">Create Alarm</string>
+    <string name="create_alarm_with_pin">Create Alarm with PIN</string>
     <string name="cancel_alarm">Cancel Alarm</string>
+    <string name="cancel_alarm_with_pin">Cancel Alarm with PIN</string>
     <string name="preparing_alarm">Preparing alarm…</string>
     <string name="disarming_alarm">Disarming alarm…</string>
     <string name="allow_location_permissions">Allow Location Permissions</string>

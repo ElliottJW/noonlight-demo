@@ -5,17 +5,22 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.noonlight.apps.data.alarm.*
+import com.noonlight.apps.data.alarm.AlarmCoordinates
+import com.noonlight.apps.data.alarm.AlarmLocation
+import com.noonlight.apps.data.alarm.AlarmStatus
+import com.noonlight.apps.data.alarm.CreateAlarmRequest
 import com.noonlight.apps.domain.location.LocationRepository
 import com.noonlight.apps.domain.location.LocationWrapper
 import com.noonlight.apps.domain.user.UserProvider
 import com.noonlight.apps.network.api.NoonlightApi
 import com.noonlight.apps.ui.state.alarm.AlarmScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.lang.Exception
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -45,6 +50,20 @@ class AlarmScreenViewModel @Inject constructor(
      * we're asking for their location.
      */
     fun onCreateAlarmClicked() {
+        onCreateNewAlarm()
+    }
+
+    fun onCreatAlarmWithPinClicked() {
+        val pin = userProvider.pin ?: kotlin.run {
+            Timber.e("No PIN was provided for this user.")
+            // TODO: Handle this error. Ignore for now.
+            return
+        }
+
+        onCreateNewAlarm(pin = pin)
+    }
+
+    private fun onCreateNewAlarm(pin: String? = null) {
         val permissionsGranted = locationRepository.areCurrentLocationPermissionsGranted()
         if (permissionsGranted) {
             locationRepository.getLastLocation(onSuccess = { wrapper ->
@@ -52,7 +71,7 @@ class AlarmScreenViewModel @Inject constructor(
                     Timber.e("Wrapper is invalid!")
                     updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.CREATING) }
                 } else {
-                    createNewAlarm(wrapper = wrapper)
+                    createNewAlarm(wrapper = wrapper, pin = pin)
                 }
             }, onError = {
                 Timber.e("Permissions have not been granted yet.")
@@ -65,13 +84,13 @@ class AlarmScreenViewModel @Inject constructor(
         }
     }
 
-    private fun createNewAlarm(wrapper: LocationWrapper) {
+    private fun createNewAlarm(wrapper: LocationWrapper, pin: String?) {
         updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.ARMING) }
         viewModelScope.launch {
             val request = CreateAlarmRequest(
                 name = userProvider.name,
                 phone = userProvider.phone,
-                pin = userProvider.pin,
+                pin = pin,
                 location = AlarmLocation(
                     coordinates = AlarmCoordinates(
                         // !! is not best practice; However, these were verified earlier in the
@@ -186,6 +205,20 @@ class AlarmScreenViewModel @Inject constructor(
     }
 
     fun onCancelAlarmClicked() {
+        onCancelAlarm()
+    }
+
+    fun onCancelAlarmWithPinClicked() {
+        val pin = userProvider.pin ?: kotlin.run {
+            Timber.e("No pin was provided for this user!")
+            // TODO: Handle this error. Ignore for now.
+            return
+        }
+
+        onCancelAlarm(pin = pin)
+    }
+
+    private fun onCancelAlarm(pin: String? = null) {
         Timber.i("User cancelled their alarm.")
         val alarmId = _state.value?.currentAlarmId ?: kotlin.run {
             Timber.e("There was no current alarm ID")
@@ -196,7 +229,10 @@ class AlarmScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val response = noonlightApi.updateAlarmStatus(
                 alarmId = alarmId,
-                alarmStatus = AlarmStatus(status = AlarmStatus.Type.CANCELED)
+                alarmStatus = AlarmStatus(
+                    pin = pin,
+                    status = AlarmStatus.Type.CANCELED
+                )
             )
 
             if (response.isSuccessful) {
@@ -210,6 +246,7 @@ class AlarmScreenViewModel @Inject constructor(
             } else {
                 val errorBody = response.errorBody()
                 Timber.e("There was an error cancelling the alarm: $errorBody")
+                updateState { old -> old.copy(screenStatus = AlarmScreenState.Status.ARMED) }
                 _events.emit(AlarmScreenEvent.ErrorCancellingAlarm(Exception(errorBody.toString())))
             }
         }

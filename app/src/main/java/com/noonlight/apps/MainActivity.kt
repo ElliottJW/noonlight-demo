@@ -106,9 +106,16 @@ class MainActivity : ComponentActivity() {
                     onCreateAlarmClicked = {
                         alarmScreenViewModel.onCreateAlarmClicked()
                     },
+                    onCreateAlarmWithPinClicked = {
+                        alarmScreenViewModel.onCreatAlarmWithPinClicked()
+                    },
                     onCancelAlarmClicked = {
                         alarmScreenViewModel.onCancelAlarmClicked()
-                    })
+                    },
+                    onCancelAlarmWithPinClicked = {
+                        alarmScreenViewModel.onCancelAlarmWithPinClicked()
+                    }
+                )
             }
         }
     }

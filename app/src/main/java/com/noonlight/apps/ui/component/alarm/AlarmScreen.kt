@@ -18,7 +18,9 @@ import com.noonlight.apps.ui.theme.NoonlightDemoTheme
 fun AlarmScreen(
     state: AlarmScreenState,
     onCreateAlarmClicked: () -> Unit,
-    onCancelAlarmClicked: () -> Unit
+    onCreateAlarmWithPinClicked: () -> Unit,
+    onCancelAlarmClicked: () -> Unit,
+    onCancelAlarmWithPinClicked: () -> Unit
 ) {
     Surface {
         Column(
@@ -34,6 +36,12 @@ fun AlarmScreen(
                         color = MaterialTheme.colors.primary,
                         onClick = onCreateAlarmClicked
                     )
+                    // Create Alarm button (with PIN)
+                    AlarmButton(
+                        text = stringResource(id = R.string.create_alarm_with_pin),
+                        color = MaterialTheme.colors.primary,
+                        onClick = onCreateAlarmWithPinClicked
+                    )
                 }
                 AlarmScreenState.Status.ARMING -> {
                     // Loading indicator
@@ -47,6 +55,12 @@ fun AlarmScreen(
                         text = stringResource(id = R.string.cancel_alarm),
                         color = MaterialTheme.colors.error,
                         onClick = onCancelAlarmClicked
+                    )
+                    // Cancel Alarm (with PIN)
+                    AlarmButton(
+                        text = stringResource(id = R.string.cancel_alarm_with_pin),
+                        color = MaterialTheme.colors.error,
+                        onClick = onCancelAlarmWithPinClicked
                     )
                 }
                 AlarmScreenState.Status.DISARMING -> {
@@ -67,7 +81,10 @@ fun PreviewAlarmScreenNew() {
         AlarmScreen(
             state = AlarmScreenState(screenStatus = AlarmScreenState.Status.CREATING),
             onCreateAlarmClicked = { /*TODO*/ },
-            onCancelAlarmClicked = {})
+            onCreateAlarmWithPinClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {},
+            onCancelAlarmWithPinClicked = {}
+        )
     }
 }
 
@@ -78,7 +95,10 @@ fun PreviewAlarmScreenLoading() {
         AlarmScreen(
             state = AlarmScreenState(screenStatus = AlarmScreenState.Status.ARMING),
             onCreateAlarmClicked = { /*TODO*/ },
-            onCancelAlarmClicked = {})
+            onCreateAlarmWithPinClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {},
+            onCancelAlarmWithPinClicked = {}
+        )
     }
 }
 
@@ -89,7 +109,10 @@ fun PreviewAlarmScreenArmed() {
         AlarmScreen(
             state = AlarmScreenState(screenStatus = AlarmScreenState.Status.ARMED),
             onCreateAlarmClicked = { /*TODO*/ },
-            onCancelAlarmClicked = {})
+            onCreateAlarmWithPinClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {},
+            onCancelAlarmWithPinClicked = {}
+        )
     }
 }
 
@@ -100,6 +123,9 @@ fun PreviewAlarmScreenDisarming() {
         AlarmScreen(
             state = AlarmScreenState(screenStatus = AlarmScreenState.Status.DISARMING),
             onCreateAlarmClicked = { /*TODO*/ },
-            onCancelAlarmClicked = {})
+            onCreateAlarmWithPinClicked = { /*TODO*/ },
+            onCancelAlarmClicked = {},
+            onCancelAlarmWithPinClicked = {}
+        )
     }
 }
